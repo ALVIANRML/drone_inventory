@@ -1,0 +1,30 @@
+.custom-carousel{
+    height: 30vh;
+}
+
+.custom-carousel .slick-prev,
+.custom-carousel .slick-next {
+  z-index: 1000;
+  font-weight: bold;
+  color: rgb(255, 255, 255) !important;
+}
+
+.custom-carousel .slick-prev {
+  left: -10px; /* atur posisi panah kiri */
+
+}
+
+.custom-carousel .slick-next {
+  right: -10px; /* atur posisi panah kanan */
+}
+
+/* Hilangin background putih bawaan modal */
+.custom-modal .ant-modal-content {
+  background-color: transparent !important;
+  box-shadow: none !important; /* biar ga ada shadow */
+}
+
+/* Hilangin border putih */
+.custom-modal .ant-modal-body {
+  background-color: transparent !important;
+}
