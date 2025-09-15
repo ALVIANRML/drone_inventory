@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Breadcrumb, Layout, Menu, theme } from "antd";
+import { Dropdown, Layout, Menu, Button, theme } from "antd";
 const { Header, Content, Footer } = Layout;
 import LogoHeader from "../assets/Img/LogoHeader_PTPN4.png";
 import Route from "../Route/Route";
-import Home from "../Component/Home";
-import Detail from "../Component/Detail";
+import { MenuOutlined, LogoutOutlined } from "@ant-design/icons";
 
 const Dashboard = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -38,10 +37,18 @@ const Dashboard = () => {
         }}
       >
         {/* Kiri */}
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <img src={LogoHeader} alt="" className="w-10" />
+        <div className="flex items-center">
+          <img
+            src={LogoHeader}
+            alt=""
+            className="w-10 sm:w-10 md:w-12 lg:w-14 xl:w-16"
+          />
           <h2
-            className="ml-5 text-3xl font-bold text-white"
+            className="
+        ml-2 sm:ml-4 md:ml-6
+        text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl
+        font-bold text-white
+      "
             style={{ fontFamily: "'Orbitron', sans-serif" }}
           >
             Drone Inventory
@@ -49,15 +56,46 @@ const Dashboard = () => {
         </div>
 
         {/* Kanan */}
-        <button
-          onClick={handleLogout}
-          className="w-24 h-10 bg-blue-500 text-white rounded-lg 
-             flex items-center justify-center 
-             hover:bg-red-600 active:bg-red-400 
-             transition-colors duration-200"
-        >
-          Logout
-        </button>
+        {/* Untuk layar besar (xl ke atas), tombol logout langsung muncul */}
+        <div className="hidden xl:flex">
+          <button
+            onClick={handleLogout}
+            className="px-4 h-10 bg-blue-500 text-white rounded-lg 
+        flex items-center justify-center 
+        hover:bg-red-600 active:bg-red-400 
+        transition-colors duration-200 "
+          >
+            Logout
+          </button>
+        </div>
+
+        {/* Untuk layar kecil (xs sm md lg), pakai dropdown */}
+        <div className="xl:hidden">
+          <Dropdown
+          style={{marginTop:"5vh"}}
+            menu={{
+              items: [
+                {
+                  key: "1",
+                  label: (
+                    <span
+                      onClick={handleLogout}
+                      className="flex items-center text-red-600"
+                    >
+                      <LogoutOutlined className="mr-2" /> Logout
+                    </span>
+                  ),
+                },
+              ],
+            }}
+            overlayStyle={{ zIndex: 6000 }} // lebih tinggi dari Header
+            getPopupContainer={(trigger) => document.body} // biar render di body, bukan ke dalam Header
+            placement="bottomRight"
+            trigger={["click"]}
+          >
+            <Button type="primary" shape="circle" icon={<MenuOutlined />} />
+          </Dropdown>
+        </div>
       </Header>
       <Content style={{ padding: "0px", marginTop: "6vh" }}>
         <div

@@ -354,28 +354,29 @@ export default function Detail() {
   };
 
   return (
-    <>
+    <div className="px-2 sm:px-4 lg:px-6">
       <BreadCrumpComponent
         number={2}
         data={detailData.nama}
         setRoute={setRoute}
       />
+      
+      {/* Responsive Title */}
       <h1
+        className="text-4xl sm:text-6xl lg:text-8xl font-bold mb-4 sm:mb-6 lg:mb-8 text-center"
         style={{
-          fontWeight: "bold",
-          fontSize: "8rem",
-          marginBottom: "1vh",
-          textAlign: "center",
+          fontSize: "clamp(2rem, 8vw, 8rem)",
         }}
       >
         {detailData?.nama}
       </h1>
 
-      <div className="w-full flex justify-center mb-5">
+      {/* Responsive Search */}
+      <div className="w-full flex justify-center mb-4 sm:mb-6 px-2">
         <Search
           placeholder="Cari Spesifikasi Drone"
           allowClear
-          style={{ width: "50%" }}
+          className="w-full sm:w-3/4 lg:w-1/2"
           enterButton="Search"
           size="large"
           onSearch={onSearch}
@@ -383,193 +384,278 @@ export default function Detail() {
         />
       </div>
 
-      <div className="w-full flex justify-between">
-        <div className="flex gap-3">
+      {/* Responsive Button Layout */}
+      <div className="w-full mb-4 sm:mb-6">
+        {/* Mobile Layout - Stack buttons vertically */}
+        <div className="flex flex-col sm:hidden gap-3">
           <button
-            className="mb-5 px-4 py-2 bg-blue-500 text-white rounded-lg 
-               hover:bg-blue-600 active:bg-blue-400 focus:outline-none"
+            className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg 
+               hover:bg-blue-600 active:bg-blue-400 focus:outline-none text-sm"
             onClick={() => handleTambahDataSpesifikasi(detailData)}
           >
             Tambah Spesifikasi Drone
           </button>
 
           <button
-            className="mb-5 px-4 py-2 bg-green-500 text-white rounded-lg 
-               hover:bg-green-600 active:bg-green-400 focus:outline-none flex items-center gap-2"
+            className="w-full px-4 py-3 bg-green-500 text-white rounded-lg 
+               hover:bg-green-600 active:bg-green-400 focus:outline-none flex items-center justify-center gap-2 text-sm"
             onClick={handlePrintData}
           >
             <PrinterOutlined />
             Print Data Spesifikasi
           </button>
+
+          <button
+            onClick={() => handleDeleteAllData(detailData)}
+            className="w-full px-4 py-3 bg-red-500 text-white rounded-lg 
+               hover:bg-red-600 active:bg-red-400 focus:outline-none text-sm"
+          >
+            Delete All Data
+          </button>
         </div>
 
-        <button
-          onClick={() => handleDeleteAllData(detailData)}
-          className="mb-5 px-4 py-2 bg-red-500 text-white rounded-lg 
-             hover:bg-red-600 active:bg-red-400 focus:outline-none"
-        >
-          Delete All Data
-        </button>
+        {/* Desktop Layout - Horizontal layout */}
+        <div className="hidden sm:flex sm:justify-between sm:flex-wrap sm:gap-3">
+          <div className="flex flex-wrap gap-3">
+            <button
+              className="px-3 py-2 sm:px-4 sm:py-2 bg-blue-500 text-white rounded-lg 
+                 hover:bg-blue-600 active:bg-blue-400 focus:outline-none text-sm sm:text-base"
+              onClick={() => handleTambahDataSpesifikasi(detailData)}
+            >
+              Tambah Spesifikasi Drone
+            </button>
+
+            <button
+              className="px-3 py-2 sm:px-4 sm:py-2 bg-green-500 text-white rounded-lg 
+                 hover:bg-green-600 active:bg-green-400 focus:outline-none flex items-center gap-2 text-sm sm:text-base"
+              onClick={handlePrintData}
+            >
+              <PrinterOutlined />
+              <span className="hidden sm:inline">Print Data Spesifikasi</span>
+              <span className="sm:hidden">Print</span>
+            </button>
+          </div>
+
+          <button
+            onClick={() => handleDeleteAllData(detailData)}
+            className="px-3 py-2 sm:px-4 sm:py-2 bg-red-500 text-white rounded-lg 
+               hover:bg-red-600 active:bg-red-400 focus:outline-none text-sm sm:text-base"
+          >
+            Delete All Data
+          </button>
+        </div>
       </div>
 
-      <Table
-        dataSource={filteredSpesifikasiData}
-        rowKey="ID"
-        locale={{
-          emptyText: searchKeyword
-            ? `Tidak ada spesifikasi yang ditemukan dengan kata kunci "${searchKeyword}"`
-            : "Tidak ada data",
-        }}
-      >
-        <Column
-          title="Serial Number"
-          dataIndex="SERIAL_NUMBER"
-          key="SERIAL_NUMBER"
-        />
-        <Column
-          title="Gambar"
-          dataIndex="GAMBAR1"
-          key="GAMBAR1"
-          render={(text, record) =>
-            text ? (
-              <img
-                src={
-                  text
-                    ? `${BaseURL}/attachments/drone/bukti_realisasi/${text}`
-                    : logoptpn4
-                }
-                alt="gambar"
-                style={{
-                  width: 80,
-                  height: 80,
-                  objectFit: "cover",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                }}
-                onClick={() => handleOpenModal(record)}
-              />
-            ) : (
-              <span>Tidak ada gambar</span>
-            )
-          }
-        />
-        <Column
-          title="Spesifikasi Drone"
-          dataIndex="SPESIFIKASI"
-          key="SPESIFIKASI"
-          render={(text) => {
-            if (!searchKeyword || !text) return text;
-
-            const regex = new RegExp(`(${searchKeyword})`, "gi");
-            const parts = text.split(regex);
-
-            return (
-              <span>
-                {parts.map((part, index) =>
-                  regex.test(part) ? (
-                    <mark
-                      key={index}
-                      style={{ backgroundColor: "yellow", padding: "0 2px" }}
-                    >
-                      {part}
-                    </mark>
-                  ) : (
-                    part
-                  )
-                )}
-              </span>
-            );
-          }}
-        />
-        <Column
-          title="Tanggal Pengesahan"
-          dataIndex="TANGGAL"
-          key="TANGGAL"
-          render={(text) => {
-            if (!text) return "-";
-            return new Date(text).toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            });
-          }}
-        />
-
-        <Column title="Quantity" dataIndex="QUANTITY" key="QUANTITY" />
-        <Column
-          title="Harga Satuan"
-          dataIndex="HARGA_SATUAN"
-          key="HARGA_SATUAN"
-          render={(value) => {
-            if (value == null) return "-";
-            return "Rp " + Number(value).toLocaleString("en-US");
-          }}
-        />
-
-        <Column
-          title="Total Harga"
-          dataIndex="TOTAL_HARGA"
-          key="TOTAL_HARGA"
-          render={(value) => {
-            if (value == null) return "-";
-            return "Rp " + Number(value).toLocaleString("en-US");
-          }}
-        />
-        <Column title="Baik" dataIndex="BAIK" key="BAIK" />
-        <Column title="Perbaikan" dataIndex="PERBAIKAN" key="PERBAIKAN" />
-        <Column
-          title="Afkir"
-          dataIndex="AFKIR"
-          key="AFKIR"
-          render={(value) =>
-            value === true ? (
-              <span style={{ color: "red", fontWeight: "bold" }}>
-                <CloseCircleTwoTone twoToneColor="#ff4d4f" /> Tidak Layak
-              </span>
-            ) : (
-              <span style={{ color: "green", fontWeight: "bold" }}>
-                <CheckCircleTwoTone twoToneColor="#52c41a" /> Layak
-              </span>
-            )
-          }
-        />
-        <Column
-          title="Aksi"
-          key="AKSI"
-          render={(_, record) => (
-            <Space size="middle">
-              <EditOutlined
-                onClick={() => handleEditDataById(record)}
-                style={{ color: "#FFD32C", fontSize: "20px" }}
-              />
-              <DeleteOutlined
-                onClick={() => {
-                  Swal.fire({
-                    title: "Apakah Anda yakin?",
-                    text: "Data yang sudah dihapus tidak dapat dikembalikan!",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Ya, hapus!",
-                    cancelButtonText: "Batal",
-                  }).then((result) => {
-                    if (result.isConfirmed) {
-                      handleDeleteDataById(record);
+      {/* Responsive Table */}
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
+        <div className="min-w-full inline-block align-middle">
+          <Table
+            dataSource={filteredSpesifikasiData}
+            rowKey="ID"
+            scroll={{ x: 1200 }}
+            size="small"
+            className="responsive-table"
+            locale={{
+              emptyText: searchKeyword
+                ? `Tidak ada spesifikasi yang ditemukan dengan kata kunci "${searchKeyword}"`
+                : "Tidak ada data",
+            }}
+          >
+            <Column
+              title="Serial Number"
+              dataIndex="SERIAL_NUMBER"
+              key="SERIAL_NUMBER"
+              width={120}
+              className="text-xs sm:text-sm"
+            />
+            <Column
+              title="Gambar"
+              dataIndex="GAMBAR1"
+              key="GAMBAR1"
+              width={100}
+              render={(text, record) =>
+                text ? (
+                  <img
+                    src={
+                      text
+                        ? `${BaseURL}/attachments/drone/bukti_realisasi/${text}`
+                        : logoptpn4
                     }
-                  });
-                }}
-                style={{ color: "red", fontSize: "20px", cursor: "pointer" }}
-              />
-            </Space>
-          )}
-        />
-      </Table>
+                    alt="gambar"
+                    className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 object-cover rounded-lg cursor-pointer"
+                    onClick={() => handleOpenModal(record)}
+                  />
+                ) : (
+                  <span className="text-xs sm:text-sm">Tidak ada gambar</span>
+                )
+              }
+            />
+            <Column
+              title="Spesifikasi Drone"
+              dataIndex="SPESIFIKASI"
+              key="SPESIFIKASI"
+              width={200}
+              className="text-xs sm:text-sm"
+              render={(text) => {
+                if (!searchKeyword || !text) return (
+                  <div className="max-w-48 truncate" title={text}>
+                    {text}
+                  </div>
+                );
 
+                const regex = new RegExp(`(${searchKeyword})`, "gi");
+                const parts = text.split(regex);
+
+                return (
+                  <span>
+                    {parts.map((part, index) =>
+                      regex.test(part) ? (
+                        <mark
+                          key={index}
+                          style={{ backgroundColor: "yellow", padding: "0 2px" }}
+                        >
+                          {part}
+                        </mark>
+                      ) : (
+                        part
+                      )
+                    )}
+                  </span>
+                );
+              }}
+            />
+            <Column
+              title="Tanggal Pengesahan"
+              dataIndex="TANGGAL"
+              key="TANGGAL"
+              width={140}
+              className="text-xs sm:text-sm"
+              render={(text) => {
+                if (!text) return "-";
+                return new Date(text).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                });
+              }}
+            />
+
+            <Column 
+              title="Qty" 
+              dataIndex="QUANTITY" 
+              key="QUANTITY" 
+              width={80}
+              className="text-xs sm:text-sm"
+            />
+            <Column
+              title="Harga Satuan"
+              dataIndex="HARGA_SATUAN"
+              key="HARGA_SATUAN"
+              width={120}
+              className="text-xs sm:text-sm"
+              render={(value) => {
+                if (value == null) return "-";
+                return (
+                  <div className="truncate" title={`Rp ${Number(value).toLocaleString("en-US")}`}>
+                    Rp {Number(value).toLocaleString("en-US")}
+                  </div>
+                );
+              }}
+            />
+
+            <Column
+              title="Total Harga"
+              dataIndex="TOTAL_HARGA"
+              key="TOTAL_HARGA"
+              width={120}
+              className="text-xs sm:text-sm"
+              render={(value) => {
+                if (value == null) return "-";
+                return (
+                  <div className="truncate" title={`Rp ${Number(value).toLocaleString("en-US")}`}>
+                    Rp {Number(value).toLocaleString("en-US")}
+                  </div>
+                );
+              }}
+            />
+            <Column 
+              title="Baik" 
+              dataIndex="BAIK" 
+              key="BAIK" 
+              width={60}
+              className="text-xs sm:text-sm"
+            />
+            <Column 
+              title="Perbaikan" 
+              dataIndex="PERBAIKAN" 
+              key="PERBAIKAN" 
+              width={80}
+              className="text-xs sm:text-sm"
+            />
+            <Column
+              title="Status"
+              dataIndex="AFKIR"
+              key="AFKIR"
+              width={100}
+              className="text-xs sm:text-sm"
+              render={(value) =>
+                value === true ? (
+                  <span className="text-red-600 font-bold flex items-center gap-1">
+                    <CloseCircleTwoTone twoToneColor="#ff4d4f" className="text-sm" />
+                    <span className="hidden sm:inline">Tidak Layak</span>
+                    <span className="sm:hidden">Tidak</span>
+                  </span>
+                ) : (
+                  <span className="text-green-600 font-bold flex items-center gap-1">
+                    <CheckCircleTwoTone twoToneColor="#52c41a" className="text-sm" />
+                    <span className="hidden sm:inline">Layak</span>
+                    <span className="sm:hidden">Ya</span>
+                  </span>
+                )
+              }
+            />
+            <Column
+              title="Aksi"
+              key="AKSI"
+              width={100}
+              fixed="right"
+              render={(_, record) => (
+                <Space size="small">
+                  <EditOutlined
+                    onClick={() => handleEditDataById(record)}
+                    className="text-yellow-500 text-base sm:text-lg cursor-pointer hover:text-yellow-600"
+                  />
+                  <DeleteOutlined
+                    onClick={() => {
+                      Swal.fire({
+                        title: "Apakah Anda yakin?",
+                        text: "Data yang sudah dihapus tidak dapat dikembalikan!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#d33",
+                        cancelButtonColor: "#3085d6",
+                        confirmButtonText: "Ya, hapus!",
+                        cancelButtonText: "Batal",
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          handleDeleteDataById(record);
+                        }
+                      });
+                    }}
+                    className="text-red-500 text-base sm:text-lg cursor-pointer hover:text-red-600"
+                  />
+                </Space>
+              )}
+            />
+          </Table>
+        </div>
+      </div>
+
+      {/* Print Modal - Responsive */}
       <Modal
         title={
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <PrinterOutlined style={{ color: "#1890ff" }} />
+          <div className="flex items-center gap-2">
+            <PrinterOutlined className="text-blue-500" />
             Pilih Format Export
           </div>
         }
@@ -578,64 +664,61 @@ export default function Detail() {
         footer={[
           <button
             key="cancel"
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+            className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm sm:text-base"
             onClick={handlePrintModalCancel}
           >
             Batal
           </button>,
           <button
             key="print"
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 sm:px-4 sm:py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 ml-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             onClick={handleFormatSelection}
             disabled={!selectedPrintFormat}
           >
             Export
           </button>,
         ]}
-        width={400}
+        width="90%"
+        style={{ maxWidth: "400px" }}
         centered
       >
         <div className="py-4">
-          <p className="mb-4 text-gray-600">
+          <p className="mb-4 text-gray-600 text-sm sm:text-base">
             Pilih format file yang ingin Anda export:
           </p>
           <Select
             placeholder="Pilih format export"
-            style={{ width: "100%" }}
+            className="w-full"
             size="large"
             value={selectedPrintFormat}
             onChange={setSelectedPrintFormat}
           >
             <Option value="excel">
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <FileExcelOutlined style={{ color: "#52c41a" }} />
-                Export ke Excel (.xlsx)
+              <div className="flex items-center gap-2">
+                <FileExcelOutlined className="text-green-500" />
+                <span className="text-sm sm:text-base">Export ke Excel (.xlsx)</span>
               </div>
             </Option>
             <Option value="pdf">
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <FilePdfOutlined style={{ color: "#ff4d4f" }} />
-                Export ke PDF (.pdf)
+              <div className="flex items-center gap-2">
+                <FilePdfOutlined className="text-red-500" />
+                <span className="text-sm sm:text-base">Export ke PDF (.pdf)</span>
               </div>
             </Option>
           </Select>
 
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-600 mb-1">
-              <strong>Informasi Export:</strong>
+            <p className="text-sm text-blue-600 mb-1 font-semibold">
+              Informasi Export:
             </p>
-            <p className="text-sm text-blue-600">
+            <p className="text-xs sm:text-sm text-blue-600">
               • Data yang akan diexport: {filteredSpesifikasiData.length} item
             </p>
-            <p className="text-sm text-blue-600">
+            <p className="text-xs sm:text-sm text-blue-600 truncate">
               • Drone: {detailData?.nama || "Unknown"}
             </p>
             {searchKeyword && (
-              <p className="text-sm text-blue-600">
+              <p className="text-xs sm:text-sm text-blue-600 truncate">
                 • Filter pencarian: "{searchKeyword}"
               </p>
             )}
@@ -643,32 +726,30 @@ export default function Detail() {
         </div>
       </Modal>
 
+      {/* Image Carousel Modal - Responsive */}
       <Modal
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
-        width={800}
+        width="90%"
+        style={{ maxWidth: "800px" }}
         centered
         className="custom-modal"
       >
         <Carousel arrows infinite dots={true} className="custom-carousel">
           {currentImages.map((src, idx) => (
-            <div key={idx} style={{ textAlign: "center" }}>
+            <div key={idx} className="text-center">
               <img
                 src={src}
                 alt={`gambar-${idx}`}
-                style={{
-                  maxHeight: "20vh",
-                  maxWidth: "100%",
-                  objectFit: "contain",
-                  margin: "0 auto",
-                }}
+                className="max-h-60 sm:max-h-80 lg:max-h-96 max-w-full object-contain mx-auto"
               />
             </div>
           ))}
         </Carousel>
       </Modal>
 
+      {/* Specification Modal - Responsive */}
       <Modal
         title={
           updateEditData === 0
@@ -679,6 +760,9 @@ export default function Detail() {
         onOk={handleOk}
         onCancel={handleCancel}
         destroyOnClose={true}
+        width="90%"
+        style={{ maxWidth: "800px" }}
+        className="responsive-modal"
       >
         <ModalFormSpesifikasi
           key={updateEditData === 0 ? "add" : editData?.ID}
@@ -713,6 +797,6 @@ export default function Detail() {
           setSerialNumber={setSerialNumber}
         />
       </Modal>
-    </>
+    </div>
   );
 }
