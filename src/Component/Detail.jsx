@@ -19,10 +19,9 @@ import {
   FileExcelOutlined,
   FilePdfOutlined,
 } from "@ant-design/icons";
+import { handlePrintExcel } from "./DownloadFile/DownloadExcel";
+import { handlePrintPDF } from "./DownloadFile/DownloadPDF";
 import ModalFormSpesifikasi from "./ModalFormSpesifikasi";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 export default function Detail() {
   const { detailData, setRoute } = useContext(AppContext);
@@ -30,8 +29,9 @@ export default function Detail() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [currentImages, setCurrentImages] = useState([]);
   const [editData, setEditData] = useState(null);
-  const [spesifikasi, setSpesifikasi] = useState("");
   const [tanggal, setTanggal] = useState(null);
+  const [spesifikasi, setSpesifikasi] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
   const [quantity, setQuantity] = useState(null);
   const [hargaSatuan, setHargaSatuan] = useState(null);
   const [totalHarga, setTotalHarga] = useState(
@@ -97,6 +97,7 @@ export default function Detail() {
   const resetModalState = () => {
     setEditData(null);
     setSpesifikasi("");
+    setSerialNumber("");
     setTanggal(null);
     setQuantity(0);
     setHargaSatuan(0);
@@ -112,198 +113,21 @@ export default function Detail() {
     setGambarLima([]);
   };
 
-  const handlePrintExcel = () => {
-    try {
-      const excelData = filteredSpesifikasiData.map((item, index) => ({
-        No: index + 1,
-        "Spesifikasi Drone": item.SPESIFIKASI || "-",
-        "Tanggal Pengesahan": item.TANGGAL
-          ? new Date(item.TANGGAL).toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })
-          : "-",
-        Quantity: item.QUANTITY || 0,
-        "Harga Satuan": item.HARGA_SATUAN
-          ? "Rp " + Number(item.HARGA_SATUAN).toLocaleString("id-ID")
-          : "-",
-        "Total Harga": item.TOTAL_HARGA
-          ? "Rp " + Number(item.TOTAL_HARGA).toLocaleString("id-ID")
-          : "-",
-        Baik: item.BAIK || 0,
-        Perbaikan: item.PERBAIKAN || 0,
-        Afkir: item.AFKIR === true ? "Tidak Layak" : "Layak",
-      }));
-
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(excelData);
-
-      const headerData = [
-        [`Data Spesifikasi Drone: ${detailData?.nama || "Unknown"}`],
-        [`Tanggal Export: ${new Date().toLocaleDateString("id-ID")}`],
-        [`Total Data: ${excelData.length} item`],
-        [],
-      ];
-
-      XLSX.utils.sheet_add_aoa(ws, headerData, { origin: "A1" });
-
-      const range = XLSX.utils.decode_range(ws["!ref"]);
-      range.e.r = range.s.r + headerData.length + excelData.length;
-      ws["!ref"] = XLSX.utils.encode_range(range);
-
-      ws["!cols"] = [
-        { wch: 5 },
-        { wch: 30 },
-        { wch: 15 },
-        { wch: 10 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 8 },
-        { wch: 10 },
-        { wch: 12 },
-      ];
-
-      XLSX.utils.book_append_sheet(wb, ws, "Data Spesifikasi");
-
-      const fileName = `Data_Spesifikasi_${detailData?.nama?.replace(
-        /\s+/g,
-        "_"
-      )}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-
-      setIsPrintModalOpen(false);
-      setSelectedPrintFormat("");
-
-      Swal.fire({
-        icon: "success",
-        title: "Export Excel Berhasil!",
-        text: `File ${fileName} telah diunduh`,
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Error export Excel:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Export Excel Gagal",
-        text: "Terjadi kesalahan saat export ke Excel",
-      });
-    }
-  };
-
-  const handlePrintPDF = () => {
-    try {
-      const doc = new jsPDF("landscape", "mm", "a4");
-
-      doc.setFontSize(18);
-      doc.text(
-        `Data Spesifikasi Drone: ${detailData?.nama || "Unknown"}`,
-        14,
-        22
-      );
-
-      doc.setFontSize(12);
-      doc.text(
-        `Tanggal Export: ${new Date().toLocaleDateString("id-ID")}`,
-        14,
-        30
-      );
-      doc.text(`Total Data: ${filteredSpesifikasiData.length} item`, 14, 38);
-
-      const pdfTableData = filteredSpesifikasiData.map((item, index) => [
-        index + 1,
-        item.SPESIFIKASI || "-",
-        item.TANGGAL
-          ? new Date(item.TANGGAL).toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })
-          : "-",
-        item.QUANTITY || 0,
-        item.HARGA_SATUAN
-          ? "Rp " + Number(item.HARGA_SATUAN).toLocaleString("id-ID")
-          : "-",
-        item.TOTAL_HARGA
-          ? "Rp " + Number(item.TOTAL_HARGA).toLocaleString("id-ID")
-          : "-",
-        item.BAIK || 0,
-        item.PERBAIKAN || 0,
-        item.AFKIR === true ? "Tidak Layak" : "Layak",
-      ]);
-
-      autoTable(doc, {
-        head: [
-          [
-            "No",
-            "Spesifikasi Drone",
-            "Tanggal",
-            "Qty",
-            "Harga Satuan",
-            "Total Harga",
-            "Baik",
-            "Perbaikan",
-            "Status",
-          ],
-        ],
-        body: pdfTableData,
-        startY: 45,
-        styles: {
-          fontSize: 8,
-          cellPadding: 2,
-        },
-        headStyles: {
-          fillColor: [41, 128, 185],
-          textColor: 255,
-          fontSize: 9,
-          fontStyle: "bold",
-        },
-        columnStyles: {
-          0: { cellWidth: 10 },
-          1: { cellWidth: 50 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 15 },
-          4: { cellWidth: 30 },
-          5: { cellWidth: 30 },
-          6: { cellWidth: 15 },
-          7: { cellWidth: 20 },
-          8: { cellWidth: 25 },
-        },
-        margin: { left: 14, right: 14 },
-      });
-
-      const fileName = `Data_Spesifikasi_${detailData?.nama?.replace(
-        /\s+/g,
-        "_"
-      )}_${new Date().toISOString().slice(0, 10)}.pdf`;
-      doc.save(fileName);
-
-      setIsPrintModalOpen(false);
-      setSelectedPrintFormat("");
-
-      Swal.fire({
-        icon: "success",
-        title: "Export PDF Berhasil!",
-        text: `File ${fileName} telah diunduh`,
-        timer: 2000,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error("Error export PDF:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Export PDF Gagal",
-        text: "Terjadi kesalahan saat export ke PDF",
-      });
-    }
-  };
-
   const handleFormatSelection = () => {
     if (selectedPrintFormat === "excel") {
-      handlePrintExcel();
+      handlePrintExcel(
+        detailData,
+        filteredSpesifikasiData,
+        setIsPrintModalOpen,
+        setSelectedPrintFormat
+      );
     } else if (selectedPrintFormat === "pdf") {
-      handlePrintPDF();
+      handlePrintPDF(
+        detailData,
+        filteredSpesifikasiData,
+        setIsPrintModalOpen,
+        setSelectedPrintFormat
+      );
     }
   };
 
@@ -358,6 +182,13 @@ export default function Detail() {
           formData.append("gambar5", data?.GAMBAR5);
         }
       }
+
+      const formObj = {};
+      formData.forEach((value, key) => {
+        formObj[key] = value;
+      });
+      console.log(formObj);
+
       let response;
       if (updateEditData === 0) {
         response = await axios.post(`${BaseURL}/drone/spesifikasi`, formData, {
@@ -590,6 +421,11 @@ export default function Detail() {
             : "Tidak ada data",
         }}
       >
+        <Column
+          title="Serial Number"
+          dataIndex="SERIAL_NUMBER"
+          key="SERIAL_NUMBER"
+        />
         <Column
           title="Gambar"
           dataIndex="GAMBAR1"
@@ -837,7 +673,7 @@ export default function Detail() {
         title={
           updateEditData === 0
             ? "Tambah Data Spesifikasi Drone"
-            : "Edit Data Spesifikasi Drone"
+            : `Edit Data Spesifikasi Drone ${editData?.SERIAL_NUMBER || ""}`
         }
         open={isModalSpesifikasiOpen}
         onOk={handleOk}
@@ -873,6 +709,8 @@ export default function Detail() {
           gambarTiga={gambarTiga}
           gambarEmpat={gambarEmpat}
           gambarLima={gambarLima}
+          serialNumber={serialNumber}
+          setSerialNumber={setSerialNumber}
         />
       </Modal>
     </>
