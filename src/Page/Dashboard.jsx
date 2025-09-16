@@ -41,7 +41,7 @@ const Dashboard = () => {
           <img
             src={LogoHeader}
             alt=""
-            className="w-10 sm:w-10 md:w-12 lg:w-14 xl:w-16"
+            className="w-10 sm:w-10 md:w-12 lg:w-12 xl:w-14"
           />
           <h2
             className="

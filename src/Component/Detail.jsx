@@ -132,11 +132,35 @@ export default function Detail() {
   };
 
   const handleOk = async () => {
+    console.log("Raw tanggal:", tanggal);
+
+    let formattedDate = null;
+    if (tanggal) {
+      const [day, month, year] = tanggal.split("/");
+
+      if (day && month && year) {
+        // format ke YYYY-MM-DD
+        formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+          2,
+          "0"
+        )} 00:00:00`;
+      } else {
+        console.error("Format tanggal tidak valid:", tanggal);
+      }
+    }
+
+    // kalau masih null → default hari ini
+    if (!formattedDate) {
+      const now = new Date();
+      formattedDate = now.toISOString().slice(0, 19).replace("T", " ");
+      // hasil: "2025-09-16 07:22:33"
+    }
+
     try {
       const formData = new FormData();
       formData.append("id_merk", detailData.id);
       formData.append("spesifikasi", spesifikasi);
-      formData.append("tanggal", tanggal);
+      formData.append("tanggal", formattedDate);
       formData.append("quantity", Number(quantity) || 0);
       formData.append("harga_satuan", Number(hargaSatuan) || 0);
       formData.append("total_harga", Number(totalHarga) || 0);
@@ -144,44 +168,31 @@ export default function Detail() {
       formData.append("perbaikan", Number(perbaikan) || 0);
       formData.append("afkir", afkir ? 1 : 0);
 
-      if (gambarSatu && gambarSatu[0]) {
-        if (gambarSatu[0].originFileObj) {
-          formData.append("gambar1", gambarSatu[0].originFileObj);
-        } else {
-          formData.append("gambar1", data?.GAMBAR1);
+      // Helper function to handle image upload logic
+      const handleImageUpload = (imageState, imageKey, existingImageKey) => {
+        if (imageState && imageState.length > 0) {
+          // If there's a new file being uploaded
+          if (imageState[0].originFileObj) {
+            formData.append(imageKey, imageState[0].originFileObj);
+          } else if (imageState[0].url && updateEditData === 1) {
+            // If it's an existing image (from edit mode), preserve the filename
+            const existingFilename = editData?.[existingImageKey];
+            if (existingFilename) {
+              formData.append(imageKey, existingFilename);
+            }
+          }
+        } else if (updateEditData === 1 && editData?.[existingImageKey]) {
+          // If no new image is provided but we're in edit mode, preserve existing image
+          formData.append(imageKey, editData[existingImageKey]);
         }
-      }
-      if (gambarDua && gambarDua[0]) {
-        if (gambarDua[0].originFileObj) {
-          formData.append("gambar2", gambarDua[0].originFileObj);
-        } else {
-          formData.append("gambar2", data?.GAMBAR2);
-        }
-      }
+      };
 
-      if (gambarTiga && gambarTiga[0]) {
-        if (gambarTiga[0].originFileObj) {
-          formData.append("gambar3", gambarTiga[0].originFileObj);
-        } else {
-          formData.append("gambar3", data?.GAMBAR3);
-        }
-      }
-
-      if (gambarEmpat && gambarEmpat[0]) {
-        if (gambarEmpat[0].originFileObj) {
-          formData.append("gambar4", gambarEmpat[0].originFileObj);
-        } else {
-          formData.append("gambar4", data?.GAMBAR4);
-        }
-      }
-
-      if (gambarLima && gambarLima[0]) {
-        if (gambarLima[0].originFileObj) {
-          formData.append("gambar5", gambarLima[0].originFileObj);
-        } else {
-          formData.append("gambar5", data?.GAMBAR5);
-        }
-      }
+      // Handle each image with preservation logic
+      handleImageUpload(gambarSatu, "gambar1", "GAMBAR1");
+      handleImageUpload(gambarDua, "gambar2", "GAMBAR2");
+      handleImageUpload(gambarTiga, "gambar3", "GAMBAR3");
+      handleImageUpload(gambarEmpat, "gambar4", "GAMBAR4");
+      handleImageUpload(gambarLima, "gambar5", "GAMBAR5");
 
       const formObj = {};
       formData.forEach((value, key) => {
@@ -199,7 +210,7 @@ export default function Detail() {
         });
       } else {
         response = await axios.put(
-          `${BaseURL}/drone/spesifikasi/${spesifikasiData?.[0]?.ID}`,
+          `${BaseURL}/drone/spesifikasi/${editData?.ID}`,
           formData,
           {
             headers: {
@@ -360,7 +371,7 @@ export default function Detail() {
         data={detailData.nama}
         setRoute={setRoute}
       />
-      
+
       {/* Responsive Title */}
       <h1
         className="text-4xl sm:text-6xl lg:text-8xl font-bold mb-4 sm:mb-6 lg:mb-8 text-center"
@@ -497,11 +508,12 @@ export default function Detail() {
               width={200}
               className="text-xs sm:text-sm"
               render={(text) => {
-                if (!searchKeyword || !text) return (
-                  <div className="max-w-48 truncate" title={text}>
-                    {text}
-                  </div>
-                );
+                if (!searchKeyword || !text)
+                  return (
+                    <div className="max-w-48 truncate" title={text}>
+                      {text}
+                    </div>
+                  );
 
                 const regex = new RegExp(`(${searchKeyword})`, "gi");
                 const parts = text.split(regex);
@@ -512,7 +524,10 @@ export default function Detail() {
                       regex.test(part) ? (
                         <mark
                           key={index}
-                          style={{ backgroundColor: "yellow", padding: "0 2px" }}
+                          style={{
+                            backgroundColor: "yellow",
+                            padding: "0 2px",
+                          }}
                         >
                           {part}
                         </mark>
@@ -540,10 +555,10 @@ export default function Detail() {
               }}
             />
 
-            <Column 
-              title="Qty" 
-              dataIndex="QUANTITY" 
-              key="QUANTITY" 
+            <Column
+              title="Qty"
+              dataIndex="QUANTITY"
+              key="QUANTITY"
               width={80}
               className="text-xs sm:text-sm"
             />
@@ -556,7 +571,10 @@ export default function Detail() {
               render={(value) => {
                 if (value == null) return "-";
                 return (
-                  <div className="truncate" title={`Rp ${Number(value).toLocaleString("en-US")}`}>
+                  <div
+                    className="truncate"
+                    title={`Rp ${Number(value).toLocaleString("en-US")}`}
+                  >
                     Rp {Number(value).toLocaleString("en-US")}
                   </div>
                 );
@@ -572,23 +590,26 @@ export default function Detail() {
               render={(value) => {
                 if (value == null) return "-";
                 return (
-                  <div className="truncate" title={`Rp ${Number(value).toLocaleString("en-US")}`}>
+                  <div
+                    className="truncate"
+                    title={`Rp ${Number(value).toLocaleString("en-US")}`}
+                  >
                     Rp {Number(value).toLocaleString("en-US")}
                   </div>
                 );
               }}
             />
-            <Column 
-              title="Baik" 
-              dataIndex="BAIK" 
-              key="BAIK" 
+            <Column
+              title="Baik"
+              dataIndex="BAIK"
+              key="BAIK"
               width={60}
               className="text-xs sm:text-sm"
             />
-            <Column 
-              title="Perbaikan" 
-              dataIndex="PERBAIKAN" 
-              key="PERBAIKAN" 
+            <Column
+              title="Perbaikan"
+              dataIndex="PERBAIKAN"
+              key="PERBAIKAN"
               width={80}
               className="text-xs sm:text-sm"
             />
@@ -601,13 +622,19 @@ export default function Detail() {
               render={(value) =>
                 value === true ? (
                   <span className="text-red-600 font-bold flex items-center gap-1">
-                    <CloseCircleTwoTone twoToneColor="#ff4d4f" className="text-sm" />
+                    <CloseCircleTwoTone
+                      twoToneColor="#ff4d4f"
+                      className="text-sm"
+                    />
                     <span className="hidden sm:inline">Tidak Layak</span>
                     <span className="sm:hidden">Tidak</span>
                   </span>
                 ) : (
                   <span className="text-green-600 font-bold flex items-center gap-1">
-                    <CheckCircleTwoTone twoToneColor="#52c41a" className="text-sm" />
+                    <CheckCircleTwoTone
+                      twoToneColor="#52c41a"
+                      className="text-sm"
+                    />
                     <span className="hidden sm:inline">Layak</span>
                     <span className="sm:hidden">Ya</span>
                   </span>
@@ -696,13 +723,17 @@ export default function Detail() {
             <Option value="excel">
               <div className="flex items-center gap-2">
                 <FileExcelOutlined className="text-green-500" />
-                <span className="text-sm sm:text-base">Export ke Excel (.xlsx)</span>
+                <span className="text-sm sm:text-base">
+                  Export ke Excel (.xlsx)
+                </span>
               </div>
             </Option>
             <Option value="pdf">
               <div className="flex items-center gap-2">
                 <FilePdfOutlined className="text-red-500" />
-                <span className="text-sm sm:text-base">Export ke PDF (.pdf)</span>
+                <span className="text-sm sm:text-base">
+                  Export ke PDF (.pdf)
+                </span>
               </div>
             </Option>
           </Select>
