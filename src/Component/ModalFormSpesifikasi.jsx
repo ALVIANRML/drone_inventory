@@ -89,8 +89,31 @@ export default function ModalFormSpesifikasi({
       setBaik(data.BAIK || 0);
       setPerbaikan(data.PERBAIKAN || 0);
       setAfkir(data.AFKIR || false);
+
+      // Set existing images with proper format for Upload component
+      const setImageIfExists = (imagePath, setter) => {
+        if (imagePath) {
+          setter([{
+            uid: `-${Date.now()}-${Math.random()}`,
+            name: imagePath.split('/').pop(),
+            status: 'done',
+            url: `${BaseURL}/attachments/drone/bukti_realisasi/${imagePath}`,
+            // Add custom property to identify existing images
+            isExisting: true,
+            existingPath: imagePath
+          }]);
+        } else {
+          setter([]);
+        }
+      };
+
+      setImageIfExists(data.GAMBAR1, setGambarSatu);
+      setImageIfExists(data.GAMBAR2, setGambarDua);
+      setImageIfExists(data.GAMBAR3, setGambarTiga);
+      setImageIfExists(data.GAMBAR4, setGambarEmpat);
+      setImageIfExists(data.GAMBAR5, setGambarLima);
     }
-  }, [data, form, setSpesifikasi, setTanggal, setQuantity, setHargaSatuan, setTotalHarga, setBaik, setPerbaikan, setAfkir]);
+  }, [data, form, setSpesifikasi, setTanggal, setQuantity, setHargaSatuan, setTotalHarga, setBaik, setPerbaikan, setAfkir, setGambarSatu, setGambarDua, setGambarTiga, setGambarEmpat, setGambarLima]);
 
   useEffect(() => {
     const baikValue = baik || 0;
@@ -104,6 +127,11 @@ export default function ModalFormSpesifikasi({
       setDisableAfkir(false);
     }
   }, [baik, perbaikan, setAfkir, form]);
+
+  // Custom upload change handler to preserve existing images
+  const handleImageChange = (setter) => (info) => {
+    setter(info.fileList);
+  };
 
   return (
     <div className="responsive-modal-form p-2 sm:p-4">
@@ -317,6 +345,8 @@ export default function ModalFormSpesifikasi({
                               name: `gambar${num}.png`,
                               status: "done",
                               url: `${BaseURL}/attachments/drone/bukti_realisasi/${data[gambarKey]}`,
+                              isExisting: true,
+                              existingPath: data[gambarKey]
                             },
                           ]
                         : []
@@ -328,7 +358,7 @@ export default function ModalFormSpesifikasi({
                       accept="image/*"
                       maxCount={1}
                       beforeUpload={() => false}
-                      onChange={({ fileList }) => setterMap[num](fileList)}
+                      onChange={handleImageChange(setterMap[num])}
                       className="w-full"
                       style={{ width: "100%" }}
                     >

@@ -106,13 +106,13 @@ export default function Detail() {
     setPerbaikan(null);
     setAfkir(0);
 
+    // Reset image states to empty arrays instead of empty strings
     setGambarSatu([]);
     setGambarDua([]);
     setGambarTiga([]);
     setGambarEmpat([]);
     setGambarLima([]);
   };
-
   const handleFormatSelection = () => {
     if (selectedPrintFormat === "excel") {
       handlePrintExcel(
@@ -131,6 +131,17 @@ export default function Detail() {
     }
   };
 
+  const urlToFile = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new File([blob], filename, { type: blob.type });
+    } catch (error) {
+      console.error("Error converting URL to file:", error);
+      return null;
+    }
+  };
+
   const handleOk = async () => {
     console.log("Raw tanggal:", tanggal);
 
@@ -139,7 +150,6 @@ export default function Detail() {
       const [day, month, year] = tanggal.split("/");
 
       if (day && month && year) {
-        // format ke YYYY-MM-DD
         formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
           2,
           "0"
@@ -149,11 +159,9 @@ export default function Detail() {
       }
     }
 
-    // kalau masih null → default hari ini
     if (!formattedDate) {
       const now = new Date();
       formattedDate = now.toISOString().slice(0, 19).replace("T", " ");
-      // hasil: "2025-09-16 07:22:33"
     }
 
     try {
@@ -168,37 +176,62 @@ export default function Detail() {
       formData.append("perbaikan", Number(perbaikan) || 0);
       formData.append("afkir", afkir ? 1 : 0);
 
-      // Helper function to handle image upload logic
-      const handleImageUpload = (imageState, imageKey, existingImageKey) => {
+      // Enhanced image handling function that converts existing images to File objects
+      const handleImageUpload = async (
+        imageState,
+        imageKey,
+        existingImageKey
+      ) => {
+        console.log(`Processing ${imageKey}:`, imageState);
+
         if (imageState && imageState.length > 0) {
-          // If there's a new file being uploaded
-          if (imageState[0].originFileObj) {
-            formData.append(imageKey, imageState[0].originFileObj);
-          } else if (imageState[0].url && updateEditData === 1) {
-            // If it's an existing image (from edit mode), preserve the filename
-            const existingFilename = editData?.[existingImageKey];
-            if (existingFilename) {
-              formData.append(imageKey, existingFilename);
+          const imageFile = imageState[0];
+
+          // New file being uploaded
+          if (imageFile.originFileObj) {
+            console.log(
+              `New file for ${imageKey}:`,
+              imageFile.originFileObj.name
+            );
+            formData.append(imageKey, imageFile.originFileObj);
+          }
+          // Existing image - convert to File object
+          else if (imageFile.isExisting && imageFile.url) {
+            console.log(
+              `Converting existing image to file for ${imageKey}:`,
+              imageFile.url
+            );
+
+            // Extract filename from existing path
+            const filename =
+              imageFile.existingPath || `existing_${imageKey}.jpg`;
+            const fileObject = await urlToFile(imageFile.url, filename);
+
+            if (fileObject) {
+              formData.append(imageKey, fileObject);
+              console.log(`Successfully converted ${imageKey} to file object`);
+            } else {
+              console.error(`Failed to convert ${imageKey} to file object`);
             }
           }
-        } else if (updateEditData === 1 && editData?.[existingImageKey]) {
-          // If no new image is provided but we're in edit mode, preserve existing image
-          formData.append(imageKey, editData[existingImageKey]);
         }
       };
 
-      // Handle each image with preservation logic
-      handleImageUpload(gambarSatu, "gambar1", "GAMBAR1");
-      handleImageUpload(gambarDua, "gambar2", "GAMBAR2");
-      handleImageUpload(gambarTiga, "gambar3", "GAMBAR3");
-      handleImageUpload(gambarEmpat, "gambar4", "GAMBAR4");
-      handleImageUpload(gambarLima, "gambar5", "GAMBAR5");
+      // Process all images and wait for URL conversions to complete
+      await Promise.all([
+        handleImageUpload(gambarSatu, "gambar1", "GAMBAR1"),
+        handleImageUpload(gambarDua, "gambar2", "GAMBAR2"),
+        handleImageUpload(gambarTiga, "gambar3", "GAMBAR3"),
+        handleImageUpload(gambarEmpat, "gambar4", "GAMBAR4"),
+        handleImageUpload(gambarLima, "gambar5", "GAMBAR5"),
+      ]);
 
+      // Debug: Log all form data
       const formObj = {};
       formData.forEach((value, key) => {
-        formObj[key] = value;
+        formObj[key] = value instanceof File ? `[FILE: ${value.name}]` : value;
       });
-      console.log(formObj);
+      console.log("FormData contents:", formObj);
 
       let response;
       if (updateEditData === 0) {
@@ -236,11 +269,11 @@ export default function Detail() {
       resetModalState();
       handleCancel();
     } catch (error) {
-      console.error(error);
+      console.error("Error submitting form:", error);
       Swal.fire({
         icon: "error",
         title: updateEditData === 0 ? "Gagal Tambah Data" : "Gagal Edit Data",
-        text: "Silahkan coba lagi",
+        text: error.response?.data?.message || "Silahkan coba lagi",
       });
     }
   };
