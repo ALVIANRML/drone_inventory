@@ -255,7 +255,7 @@ export default function ModalFormSpesifikasi({
               <Form.Item
                 label="Kondisi Baik"
                 name="baik"
-                rules={[{ required: true, message: "Mohon masukkan jumlah kondisi baik!" }]}
+                // rules={[{ required: true, message: "Mohon masukkan jumlah kondisi baik!" }]}
                 className="mb-4"
               >
                 <InputNumber
@@ -263,7 +263,7 @@ export default function ModalFormSpesifikasi({
                   min={0}
                   placeholder="Jumlah kondisi baik"
                   size="large"
-                  onChange={(value) => setBaik(value || 0)}
+                  onChange={(value) => setBaik(value)}
                 />
               </Form.Item>
             </Col>
@@ -272,7 +272,7 @@ export default function ModalFormSpesifikasi({
               <Form.Item
                 label="Perlu Perbaikan"
                 name="perbaikan"
-                rules={[{ required: true, message: "Mohon masukkan jumlah yang perlu perbaikan!" }]}
+                // rules={[{ required: true, message: "Mohon masukkan jumlah yang perlu perbaikan!" }]}
                 className="mb-4"
               >
                 <InputNumber
@@ -280,7 +280,7 @@ export default function ModalFormSpesifikasi({
                   min={0}
                   placeholder="Jumlah perlu perbaikan"
                   size="large"
-                  onChange={(value) => setPerbaikan(value || 0)}
+                  onChange={(value) => setPerbaikan(value)}
                 />
               </Form.Item>
             </Col>
