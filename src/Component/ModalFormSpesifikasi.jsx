@@ -52,6 +52,7 @@ export default function ModalFormSpesifikasi({
   setGambarTiga,
   setGambarEmpat,
   setGambarLima,
+  gambarSatu,
 }) {
   const [form] = Form.useForm();
   const variant = Form.useWatch("variant", form);
@@ -93,15 +94,17 @@ export default function ModalFormSpesifikasi({
       // Set existing images with proper format for Upload component
       const setImageIfExists = (imagePath, setter) => {
         if (imagePath) {
-          setter([{
-            uid: `-${Date.now()}-${Math.random()}`,
-            name: imagePath.split('/').pop(),
-            status: 'done',
-            url: `${BaseURL}/attachments/drone/bukti_realisasi/${imagePath}`,
-            // Add custom property to identify existing images
-            isExisting: true,
-            existingPath: imagePath
-          }]);
+          setter([
+            {
+              uid: `-${Date.now()}-${Math.random()}`,
+              name: imagePath.split("/").pop(),
+              status: "done",
+              url: `${BaseURL}/attachments/drone/bukti_realisasi/${imagePath}`,
+              // Add custom property to identify existing images
+              isExisting: true,
+              existingPath: imagePath,
+            },
+          ]);
         } else {
           setter([]);
         }
@@ -113,7 +116,23 @@ export default function ModalFormSpesifikasi({
       setImageIfExists(data.GAMBAR4, setGambarEmpat);
       setImageIfExists(data.GAMBAR5, setGambarLima);
     }
-  }, [data, form, setSpesifikasi, setTanggal, setQuantity, setHargaSatuan, setTotalHarga, setBaik, setPerbaikan, setAfkir, setGambarSatu, setGambarDua, setGambarTiga, setGambarEmpat, setGambarLima]);
+  }, [
+    data,
+    form,
+    setSpesifikasi,
+    setTanggal,
+    setQuantity,
+    setHargaSatuan,
+    setTotalHarga,
+    setBaik,
+    setPerbaikan,
+    setAfkir,
+    setGambarSatu,
+    setGambarDua,
+    setGambarTiga,
+    setGambarEmpat,
+    setGambarLima,
+  ]);
 
   useEffect(() => {
     const baikValue = baik || 0;
@@ -147,11 +166,13 @@ export default function ModalFormSpesifikasi({
           <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
             Informasi Dasar
           </h3>
-          
+
           <Form.Item
             label="Spesifikasi Drone"
             name="spesifikasi"
-            rules={[{ required: true, message: "Mohon masukkan spesifikasi drone!" }]}
+            rules={[
+              { required: true, message: "Mohon masukkan spesifikasi drone!" },
+            ]}
             className="mb-4"
           >
             <Input
@@ -166,7 +187,9 @@ export default function ModalFormSpesifikasi({
           <Form.Item
             label="Tanggal Pengesahan"
             name="tanggal"
-            rules={[{ required: true, message: "Mohon pilih tanggal pengesahan!" }]}
+            rules={[
+              { required: true, message: "Mohon pilih tanggal pengesahan!" },
+            ]}
             className="mb-4"
           >
             <DatePicker
@@ -184,13 +207,15 @@ export default function ModalFormSpesifikasi({
           <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
             Informasi Keuangan
           </h3>
-          
+
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={12} md={8}>
               <Form.Item
                 label="Quantity"
                 name="quantity"
-                rules={[{ required: true, message: "Mohon masukkan quantity!" }]}
+                rules={[
+                  { required: true, message: "Mohon masukkan quantity!" },
+                ]}
                 className="mb-4"
               >
                 <InputNumber
@@ -202,12 +227,14 @@ export default function ModalFormSpesifikasi({
                 />
               </Form.Item>
             </Col>
-            
+
             <Col xs={24} sm={12} md={8}>
               <Form.Item
                 label="Harga Satuan"
                 name="harga_satuan"
-                rules={[{ required: true, message: "Mohon masukkan harga satuan!" }]}
+                rules={[
+                  { required: true, message: "Mohon masukkan harga satuan!" },
+                ]}
                 className="mb-4"
               >
                 <InputNumber
@@ -216,26 +243,26 @@ export default function ModalFormSpesifikasi({
                   placeholder="Masukkan harga satuan"
                   size="large"
                   formatter={(value) =>
-                    value ? `Rp ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""
+                    value
+                      ? `Rp ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                      : ""
                   }
                   parser={(value) => value?.replace(/Rp\s?|(\.*)/g, "")}
                   onChange={(value) => setHargaSatuan(value || 0)}
                 />
               </Form.Item>
             </Col>
-            
+
             <Col xs={24} sm={24} md={8}>
-              <Form.Item 
-                label="Total Harga" 
-                name="totalHarga"
-                className="mb-4"
-              >
+              <Form.Item label="Total Harga" name="totalHarga" className="mb-4">
                 <InputNumber
                   style={{ width: "100%" }}
                   disabled
                   size="large"
                   formatter={(value) =>
-                    value ? `Rp ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "Rp 0"
+                    value
+                      ? `Rp ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                      : "Rp 0"
                   }
                   parser={(value) => value?.replace(/Rp\s?|(\.*)/g, "")}
                 />
@@ -249,13 +276,18 @@ export default function ModalFormSpesifikasi({
           <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
             Kondisi Peralatan
           </h3>
-          
+
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={12} md={8}>
               <Form.Item
                 label="Kondisi Baik"
                 name="baik"
-                // rules={[{ required: true, message: "Mohon masukkan jumlah kondisi baik!" }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Mohon masukkan jumlah kondisi baik!",
+                  },
+                ]}
                 className="mb-4"
               >
                 <InputNumber
@@ -267,12 +299,17 @@ export default function ModalFormSpesifikasi({
                 />
               </Form.Item>
             </Col>
-            
+
             <Col xs={24} sm={12} md={8}>
               <Form.Item
                 label="Perlu Perbaikan"
                 name="perbaikan"
-                // rules={[{ required: true, message: "Mohon masukkan jumlah yang perlu perbaikan!" }]}
+                rules={[
+                  {
+                    required: true,
+                    message: "Mohon masukkan jumlah yang perlu perbaikan!",
+                  },
+                ]}
                 className="mb-4"
               >
                 <InputNumber
@@ -284,11 +321,11 @@ export default function ModalFormSpesifikasi({
                 />
               </Form.Item>
             </Col>
-            
+
             <Col xs={24} sm={24} md={8}>
-              <Form.Item 
-                label="Status Afkir" 
-                name="afkir" 
+              <Form.Item
+                label="Status Afkir"
+                name="afkir"
                 valuePropName="checked"
                 className="mb-4"
               >
@@ -316,19 +353,19 @@ export default function ModalFormSpesifikasi({
           <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
             Upload Gambar Dokumentasi
           </h3>
-          
+
           <Row gutter={[16, 16]}>
             {[1, 2, 3, 4, 5].map((num) => {
               const setterMap = {
                 1: setGambarSatu,
-                2: setGambarDua, 
+                2: setGambarDua,
                 3: setGambarTiga,
                 4: setGambarEmpat,
-                5: setGambarLima
+                5: setGambarLima,
               };
 
               const gambarKey = `GAMBAR${num}`;
-              
+              console.log(gambarSatu);
               return (
                 <Col xs={24} sm={12} lg={8} key={num}>
                   <Form.Item
@@ -346,7 +383,7 @@ export default function ModalFormSpesifikasi({
                               status: "done",
                               url: `${BaseURL}/attachments/drone/bukti_realisasi/${data[gambarKey]}`,
                               isExisting: true,
-                              existingPath: data[gambarKey]
+                              existingPath: data[gambarKey],
                             },
                           ]
                         : []
@@ -359,13 +396,33 @@ export default function ModalFormSpesifikasi({
                       maxCount={1}
                       beforeUpload={() => false}
                       onChange={handleImageChange(setterMap[num])}
-                      className="w-full"
-                      style={{ width: "100%" }}
+                      showUploadList={{
+                        showPreviewIcon: true,
+                        showRemoveIcon: true,
+                        showDownloadIcon: false,
+                      }}
                     >
-                      <div className="flex flex-col items-center justify-center p-2 text-center">
-                        <UploadOutlined className="text-lg sm:text-xl mb-2 text-gray-400" />
-                        <div className="text-xs sm:text-sm text-gray-500">
-                          Upload Gambar
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: "8px",
+                          textAlign: "center",
+                        }}
+                      >
+                        <UploadOutlined
+                          style={{
+                            fontSize: "20px",
+                            marginBottom: "4px",
+                            color: "black",
+                          }}
+                        />
+                        <div style={{ fontSize: "12px", color: "black" }}>
+                          {gambarSatu && gambarSatu.length > 0
+                            ? "Ganti Gambar"
+                            : "Upload Gambar"}
                         </div>
                       </div>
                     </Upload>
@@ -374,7 +431,7 @@ export default function ModalFormSpesifikasi({
               );
             })}
           </Row>
-          
+
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <div className="text-sm text-blue-600">
               <strong>Tips Upload Gambar:</strong>
