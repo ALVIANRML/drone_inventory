@@ -52,7 +52,8 @@ export default function ModalFormSpesifikasi({
   setGambarTiga,
   setGambarEmpat,
   setGambarLima,
-  gambarSatu,
+  setSerialNumber,
+  gambarSatu
 }) {
   const [form] = Form.useForm();
   const variant = Form.useWatch("variant", form);
@@ -70,6 +71,7 @@ export default function ModalFormSpesifikasi({
   useEffect(() => {
     if (data) {
       const initialValues = {
+        serial_number: data.SERIAL_NUMBER || "",
         spesifikasi: data.SPESIFIKASI || "",
         tanggal: data.TANGGAL ? dayjs(data.TANGGAL) : null,
         quantity: data.QUANTITY || null,
@@ -82,6 +84,7 @@ export default function ModalFormSpesifikasi({
 
       form.setFieldsValue(initialValues);
 
+      setSerialNumber(data.SERIAL_NUMBER || "");
       setSpesifikasi(data.SPESIFIKASI || "");
       setTanggal(data.TANGGAL || "");
       setQuantity(data.QUANTITY || 0);
@@ -119,6 +122,7 @@ export default function ModalFormSpesifikasi({
   }, [
     data,
     form,
+    setSerialNumber,
     setSpesifikasi,
     setTanggal,
     setQuantity,
@@ -168,6 +172,26 @@ export default function ModalFormSpesifikasi({
           </h3>
 
           <Form.Item
+            label="Serial Number"
+            name="serial_number"
+            rules={[
+              {
+                required: true,
+                message: "Mohon masukkan Serial Number Drone!",
+              },
+            ]}
+            className="mb-4"
+          >
+            <Input
+              rows={3}
+              placeholder="Masukkan Serial Number drone..."
+              onChange={(e) => setSerialNumber(e.target.value)}
+              style={{ width: "100%" }}
+              className="resize-none"
+            />
+          </Form.Item>
+
+          <Form.Item
             label="Spesifikasi Drone"
             name="spesifikasi"
             rules={[
@@ -177,7 +201,7 @@ export default function ModalFormSpesifikasi({
           >
             <Input
               rows={3}
-              placeholder="Masukkan spesifikasi detail drone..."
+              placeholder="Masukkan spesifikasi drone..."
               onChange={(e) => setSpesifikasi(e.target.value)}
               style={{ width: "100%" }}
               className="resize-none"
@@ -365,7 +389,6 @@ export default function ModalFormSpesifikasi({
               };
 
               const gambarKey = `GAMBAR${num}`;
-              console.log(gambarSatu);
               return (
                 <Col xs={24} sm={12} lg={8} key={num}>
                   <Form.Item

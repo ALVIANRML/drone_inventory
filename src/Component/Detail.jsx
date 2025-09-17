@@ -167,6 +167,7 @@ export default function Detail() {
     try {
       const formData = new FormData();
       formData.append("id_merk", detailData.id);
+      formData.append("serial_number", serialNumber);
       formData.append("spesifikasi", spesifikasi);
       formData.append("tanggal", formattedDate);
       formData.append("quantity", Number(quantity) || 0);
