@@ -1,8 +1,26 @@
+import { BaseURL } from "../../URL/BaseUrl";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import Swal from "sweetalert2";
 
-export const handlePrintPDF = (detailData, filteredSpesifikasiData,setIsPrintModalOpen,setSelectedPrintFormat ) => {
+// === Ambil gambar asli tanpa resize kecil ===
+const getBase64ImageFromUrl = async (url) => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result); // langsung return base64 tanpa compress
+    };
+    reader.readAsDataURL(blob);
+  });
+};
+
+export const handlePrintPDF = async (
+  detailData,
+  filteredSpesifikasiData,
+  setIsPrintModalOpen,
+  setSelectedPrintFormat
+) => {
   try {
     const doc = new jsPDF("landscape", "mm", "a4");
 
@@ -21,34 +39,49 @@ export const handlePrintPDF = (detailData, filteredSpesifikasiData,setIsPrintMod
     );
     doc.text(`Total Data: ${filteredSpesifikasiData.length} item`, 14, 38);
 
-    const pdfTableData = filteredSpesifikasiData.map((item, index) => [
-      index + 1,
-      item.SERIAL_NUMBER || "-",
-      item.SPESIFIKASI || "-",
-      item.TANGGAL
-        ? new Date(item.TANGGAL).toLocaleDateString("id-ID", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })
-        : "-",
-      item.QUANTITY || 0,
-      item.HARGA_SATUAN
-        ? "Rp " + Number(item.HARGA_SATUAN).toLocaleString("id-ID")
-        : "-",
-      item.TOTAL_HARGA
-        ? "Rp " + Number(item.TOTAL_HARGA).toLocaleString("id-ID")
-        : "-",
-      item.BAIK || 0,
-      item.PERBAIKAN || 0,
-      item.AFKIR === true ? "Tidak Layak" : "Layak",
-    ]);
+    // === convert gambar ke base64 ===
+    const pdfTableData = await Promise.all(
+      filteredSpesifikasiData.map(async (item, index) => {
+        let imgBase64 = null;
+        if (item.GAMBAR1) {
+          const url = `${BaseURL}/attachments/drone/bukti_realisasi/${item.GAMBAR1}`;
+          imgBase64 = await getBase64ImageFromUrl(url);
+        }
+        return {
+          row: [
+            index + 1,
+            item.SERIAL_NUMBER || "-",
+            "__IMAGE__", // placeholder
+            item.SPESIFIKASI || "-",
+            item.TANGGAL
+              ? new Date(item.TANGGAL).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+              : "-",
+            item.QUANTITY || 0,
+            item.HARGA_SATUAN
+              ? "Rp " + Number(item.HARGA_SATUAN).toLocaleString("id-ID")
+              : "-",
+            item.TOTAL_HARGA
+              ? "Rp " + Number(item.TOTAL_HARGA).toLocaleString("id-ID")
+              : "-",
+            item.BAIK || 0,
+            item.PERBAIKAN || 0,
+            item.AFKIR === true ? "Tidak Layak" : "Layak",
+          ],
+          imgBase64,
+        };
+      })
+    );
 
     autoTable(doc, {
       head: [
         [
           "No",
           "Serial Number",
+          "Gambar",
           "Spesifikasi Drone",
           "Tanggal",
           "Qty",
@@ -59,54 +92,45 @@ export const handlePrintPDF = (detailData, filteredSpesifikasiData,setIsPrintMod
           "Status",
         ],
       ],
-      body: pdfTableData,
-      startY: 45,
+      body: pdfTableData.map((item) => item.row),
+      startY: 50,
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
-      },
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontSize: 9,
-        fontStyle: "bold",
+        valign: "middle",
       },
       columnStyles: {
         0: { cellWidth: 10 },
-        1: { cellWidth: 50 },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 15 },
-        4: { cellWidth: 30 },
-        5: { cellWidth: 30 },
-        6: { cellWidth: 15 },
-        7: { cellWidth: 20 },
-        8: { cellWidth: 25 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 50, minCellHeight: 40, halign: "center" }, // kolom gambar lebih besar
       },
-      margin: { left: 14, right: 14 },
+      didDrawCell: (data) => {
+        if (data.column.index === 2 && data.cell.section === "body") {
+          const rowIndex = data.row.index;
+          const img = pdfTableData[rowIndex]?.imgBase64;
+          if (img) {
+            const cell = data.cell;
+
+            // Ukuran gambar (proporsional)
+            const imgWidth = 40;
+            const imgHeight = 30;
+            const x = cell.x + (cell.width - imgWidth) / 2;
+            const y = cell.y + (cell.height - imgHeight) / 2;
+
+            doc.addImage(img, "JPEG", x, y, imgWidth, imgHeight);
+          }
+        }
+      },
     });
 
     const fileName = `Data_Spesifikasi_${detailData?.nama?.replace(
       /\s+/g,
       "_"
     )}_${new Date().toISOString().slice(0, 10)}.pdf`;
+
     doc.save(fileName);
 
     setIsPrintModalOpen(false);
     setSelectedPrintFormat("");
-
-    Swal.fire({
-      icon: "success",
-      title: "Export PDF Berhasil!",
-      text: `File ${fileName} telah diunduh`,
-      timer: 2000,
-      showConfirmButton: false,
-    });
   } catch (error) {
     console.error("Error export PDF:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Export PDF Gagal",
-      text: "Terjadi kesalahan saat export ke PDF",
-    });
   }
 };
