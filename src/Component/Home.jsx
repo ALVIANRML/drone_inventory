@@ -95,10 +95,12 @@ export default function Home() {
       });
 
       await refreshMerkData();
-      resetModalState();
       getTotalBagusPerbaikan();
       getMerkSpesifikasi();
-      handleCancel();
+
+      // Reset state sebelum menutup modal
+      resetModalState();
+      setIsModalOpen(false);
     } catch (error) {
       console.error(error);
       Swal.fire({
@@ -112,12 +114,16 @@ export default function Home() {
   const resetModalState = () => {
     setEditMerk(null);
     setNama("");
-    setGambar("");
+    setGambar([]); // Pastikan array kosong, bukan string kosong
+    setIdMerk(null);
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
-    resetModalState();
+    // Reset state setelah modal ditutup
+    setTimeout(() => {
+      resetModalState();
+    }, 100); // Delay sedikit untuk memastikan modal benar-benar tertutup
   };
 
   const handleClick = (item) => {
@@ -210,10 +216,14 @@ export default function Home() {
   };
 
   const handleEditData = (item) => {
+    // Reset dulu sebelum set data edit
+    resetModalState();
+
     setUpdateAddMerk(1);
     setEditMerk(item);
-    setGambar("");
+    setNama(item.NAMA);
     setIdMerk(item.ID);
+    // Gambar akan di-set di ModalTambahMerk component
     setIsModalOpen(true);
   };
 
@@ -315,9 +325,9 @@ export default function Home() {
                   <p className="font-bold text-3xl text-center mb-2">
                     {item.NAMA}
                   </p>
-                  <p className="font-bold text-1lg">
+                  {/* <p className="font-bold text-1lg">
                     Jumlah Unit: {spesifikasi?.TOTAL_QUANTITY ?? 0}
-                  </p>
+                  </p> */}
                   <hr />
                   <p className="font-bold text-1lg text-green-600">
                     Kondisi Bagus: {spesifikasi?.TOTAL_BAIK ?? 0}
@@ -367,11 +377,15 @@ export default function Home() {
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
+        destroyOnClose={true} // Penting: destroy modal content ketika ditutup
       >
         <ModalTambahMerk
+          key={`${updateAddMerk}-${isModalOpen}-${idMerk || "new"}`} // Key unik setiap kali modal dibuka
           setNama={setNama}
           setGambar={setGambar}
+          updateAddMerk={updateAddMerk}
           editMerk={editMerk}
+          setEditMerk={setEditMerk}
           setIdMerk={setIdMerk}
         />
       </Modal>

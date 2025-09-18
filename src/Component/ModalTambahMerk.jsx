@@ -26,51 +26,73 @@ export default function ModalTambahMerk({
   setGambar,
   editMerk,
   setIdMerk,
+  updateAddMerk,
 }) {
   const [form] = Form.useForm();
   const variant = Form.useWatch("variant", form);
 
   useEffect(() => {
-    if (editMerk) {
-      const initialValues = {
-        nama: editMerk.NAMA || "",
-      };
-
-      // Set form fields
-      form.setFieldsValue(initialValues);
-
-      // Set state values
+    if (updateAddMerk === 1 && editMerk) {
+      // Mode edit
+      const initialFileList = [
+        {
+          uid: `existing-image-${editMerk.ID}`,
+          name: editMerk.GAMBAR,
+          status: "done",
+          url: `${BaseURL}/attachments/drone/bukti_realisasi/${editMerk.GAMBAR}`,
+          isExisting: true,
+        },
+      ];
+      
+      form.setFieldsValue({
+        nama: editMerk.NAMA,
+        gambar: initialFileList,
+      });
+      
       setNama(editMerk.NAMA || "");
       setIdMerk(editMerk.ID);
-
-      // Set initial gambar jika ada
-      if (editMerk.GAMBAR) {
-        const initialFileList = [
-          {
-            uid: `existing-image-${editMerk.ID}`,
-            name: editMerk.GAMBAR,
-            status: "done",
-            url: `${BaseURL}/attachments/drone/bukti_realisasi/${editMerk.GAMBAR}`,
-            // Mark sebagai existing file, bukan new upload
-            isExisting: true,
-          },
-        ];
-
-        // Set field value untuk form
-        form.setFieldValue("gambar", initialFileList);
-        // Update state
-        setGambar(initialFileList);
-      }
-    } else {
-      // Reset form untuk mode tambah
+      setGambar(initialFileList);
+    } else if (updateAddMerk === 0) {
+      // Mode tambah - reset semua
       form.resetFields();
       setNama("");
       setGambar([]);
+      
+      // Force reset form fields
+      form.setFieldsValue({
+        nama: "",
+        gambar: [],
+      });
     }
-  }, [editMerk, form, setNama, setGambar, setIdMerk]);
+  }, [editMerk, updateAddMerk, form, setNama, setGambar, setIdMerk]);
+
+  // Reset form ketika component unmount atau mode berubah
+  useEffect(() => {
+    return () => {
+      if (updateAddMerk === 0) {
+        form.resetFields();
+        setNama("");
+        setGambar([]);
+      }
+    };
+  }, []);
 
   const handleUploadChange = ({ fileList }) => {
-    setGambar(fileList);
+    // Filter hanya file yang valid
+    const validFileList = fileList.filter(file => {
+      if (file.originFileObj) {
+        // File baru
+        return true;
+      } else if (file.isExisting) {
+        // File existing (untuk edit mode)
+        return true;
+      }
+      return false;
+    });
+    
+    setGambar(validFileList);
+    // Update form field juga
+    form.setFieldValue("gambar", validFileList);
   };
 
   const handleNameChange = (e) => {
@@ -97,6 +119,17 @@ export default function ModalTambahMerk({
     return false; // Prevent auto upload
   };
 
+  const handleRemove = (file) => {
+    // Allow remove dan update state
+    const currentFileList = form.getFieldValue("gambar") || [];
+    const newFileList = currentFileList.filter(item => item.uid !== file.uid);
+    
+    setGambar(newFileList);
+    form.setFieldValue("gambar", newFileList);
+    
+    return true;
+  };
+
   return (
     <Form
       {...formItemLayout}
@@ -104,6 +137,7 @@ export default function ModalTambahMerk({
       layout="vertical"
       variant={variant || "outlined"}
       style={{ maxWidth: 1000 }}
+      preserve={false} // Penting: jangan preserve form values
     >
       <Form.Item
         label="Merk Drone"
@@ -130,12 +164,11 @@ export default function ModalTambahMerk({
           maxCount={1}
           beforeUpload={beforeUpload}
           onChange={handleUploadChange}
-          onRemove={(file) => {
-            return true;
-          }}
+          onRemove={handleRemove}
+          fileList={form.getFieldValue("gambar") || []} // Explicitly set fileList
         >
           <Button icon={<UploadOutlined />}>
-            {editMerk ? "Ganti Gambar" : "Upload Gambar"}
+            {updateAddMerk === 1 ? "Ganti Gambar" : "Upload Gambar"}
           </Button>
         </Upload>
       </Form.Item>

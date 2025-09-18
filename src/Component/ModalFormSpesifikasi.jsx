@@ -53,7 +53,7 @@ export default function ModalFormSpesifikasi({
   setGambarEmpat,
   setGambarLima,
   setSerialNumber,
-  gambarSatu
+  gambarSatu,
 }) {
   const [form] = Form.useForm();
   const variant = Form.useWatch("variant", form);
@@ -90,8 +90,8 @@ export default function ModalFormSpesifikasi({
       setQuantity(data.QUANTITY || 0);
       setHargaSatuan(data.HARGA_SATUAN || 0);
       setTotalHarga((data.QUANTITY || 0) * (data.HARGA_SATUAN || 0));
-      setBaik(data.BAIK || 0);
-      setPerbaikan(data.PERBAIKAN || 0);
+      setBaik(data.BAIK || null);
+      setPerbaikan(data.PERBAIKAN || null);
       setAfkir(data.AFKIR || false);
 
       // Set existing images with proper format for Upload component
@@ -303,17 +303,7 @@ export default function ModalFormSpesifikasi({
 
           <Row gutter={[16, 0]}>
             <Col xs={24} sm={12} md={8}>
-              <Form.Item
-                label="Kondisi Baik"
-                name="baik"
-                rules={[
-                  {
-                    required: true,
-                    message: "Mohon masukkan jumlah kondisi baik!",
-                  },
-                ]}
-                className="mb-4"
-              >
+              <Form.Item label="Kondisi Baik" name="baik" className="mb-4">
                 <InputNumber
                   style={{ width: "100%" }}
                   min={0}
@@ -328,12 +318,6 @@ export default function ModalFormSpesifikasi({
               <Form.Item
                 label="Perlu Perbaikan"
                 name="perbaikan"
-                rules={[
-                  {
-                    required: true,
-                    message: "Mohon masukkan jumlah yang perlu perbaikan!",
-                  },
-                ]}
                 className="mb-4"
               >
                 <InputNumber
