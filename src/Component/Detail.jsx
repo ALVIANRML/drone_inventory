@@ -590,6 +590,50 @@ export default function Detail() {
             />
 
             <Column
+              title="Umur"
+              key="UMUR"
+              width={140}
+              className="text-xs sm:text-sm"
+              render={(_, record) => {
+                if (!record.TANGGAL) return "-";
+
+                const startDate = new Date(record.TANGGAL);
+                const now = new Date();
+
+                let years = now.getFullYear() - startDate.getFullYear();
+                let months = now.getMonth() - startDate.getMonth();
+                let days = now.getDate() - startDate.getDate();
+
+                // kalau bulan negatif → kurangi 1 tahun
+                if (months < 0) {
+                  years--;
+                  months += 12;
+                }
+
+                // kalau hari negatif → kurangi 1 bulan
+                if (days < 0) {
+                  months--;
+                  const prevMonth = new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    0
+                  ).getDate();
+                  days += prevMonth;
+                  if (months < 0) {
+                    months += 12;
+                    years--;
+                  }
+                }
+
+                if (years > 0 && months > 0)
+                  return `${years} tahun ${months} bulan`;
+                if (years > 0) return `${years} tahun`;
+                if (months > 0) return `${months} bulan`;
+                return `${days} hari`;
+              }}
+            />
+
+            <Column
               title="Qty"
               dataIndex="QUANTITY"
               key="QUANTITY"

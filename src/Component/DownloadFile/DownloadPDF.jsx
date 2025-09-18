@@ -15,6 +15,19 @@ const getBase64ImageFromUrl = async (url) => {
   });
 };
 
+// === Hitung umur (dalam tahun, bisa disesuaikan) ===
+const calculateAge = (dateString) => {
+  if (!dateString) return "-";
+  const today = new Date();
+  const date = new Date(dateString);
+  let age = today.getFullYear() - date.getFullYear();
+  const m = today.getMonth() - date.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < date.getDate())) {
+    age--; // kalau belum lewat bulan & tanggal
+  }
+  return `${age} tahun`;
+};
+
 export const handlePrintPDF = async (
   detailData,
   filteredSpesifikasiData,
@@ -47,19 +60,23 @@ export const handlePrintPDF = async (
           const url = `${BaseURL}/attachments/drone/bukti_realisasi/${item.GAMBAR1}`;
           imgBase64 = await getBase64ImageFromUrl(url);
         }
+
+        const tanggal = item.TANGGAL
+          ? new Date(item.TANGGAL).toLocaleDateString("id-ID", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+          : "-";
+
         return {
           row: [
             index + 1,
             item.SERIAL_NUMBER || "-",
             "__IMAGE__", // placeholder
             item.SPESIFIKASI || "-",
-            item.TANGGAL
-              ? new Date(item.TANGGAL).toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })
-              : "-",
+            tanggal,
+            calculateAge(item.TANGGAL), // ✅ umur ditambahkan di sini
             item.QUANTITY || 0,
             item.HARGA_SATUAN
               ? "Rp " + Number(item.HARGA_SATUAN).toLocaleString("id-ID")
@@ -84,6 +101,7 @@ export const handlePrintPDF = async (
           "Gambar",
           "Spesifikasi Drone",
           "Tanggal",
+          "Umur", // ✅ header umur baru
           "Qty",
           "Harga Satuan",
           "Total Harga",
@@ -101,6 +119,7 @@ export const handlePrintPDF = async (
         0: { cellWidth: 10 },
         1: { cellWidth: 35 },
         2: { cellWidth: 50, minCellHeight: 40, halign: "center" }, // kolom gambar lebih besar
+        5: { cellWidth: 20 }, // kolom umur
       },
       didDrawCell: (data) => {
         if (data.column.index === 2 && data.cell.section === "body") {
