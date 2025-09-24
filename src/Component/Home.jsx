@@ -249,6 +249,7 @@ export default function Home() {
       <div className="flex space-x-5">
         <p>Bagus: {totalBagusPerbaikan?.[0]?.TOTAL_BAIK || 0}</p>
         <p>Perbaikan: {totalBagusPerbaikan?.[0]?.TOTAL_PERBAIKAN || 0}</p>
+        <p>Afkir: {totalBagusPerbaikan?.[0]?.TOTAL_AFKIR || 0}</p>
       </div>
 
       <Row gutter={[8, 8]} className="mt-10">
