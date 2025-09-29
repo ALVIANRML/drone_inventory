@@ -574,7 +574,7 @@ export default function Detail() {
               }}
             />
             <Column
-              title="Tanggal Pengesahan"
+              title="Tanggal Perolehan"
               dataIndex="TANGGAL"
               key="TANGGAL"
               width={140}
